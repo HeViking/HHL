@@ -1,33 +1,27 @@
-function X=HHL(f,x0,x1,tol,max)
+# 函数简介
+`function X=HHL(f,x0,x1,tol,max) `  
+本函数用于求出一元函数f在所给定区间中的所有近似零点  
+用Matlab2014实现
 
-This function uses the Aitken iterative algorithm to find all approximate zeros of the unary function f in a given interval
+# 具体介绍
+  
+输入值:  
+`f` 为函数句柄   
+`x0` 为求根区间左端点(默认值为-10)  
+`x1` 为求根区间右端点(默认值为10)  
+`tol` 为目标误差(默认值为 10^(-5) )  
+`max` 为最大迭代次数(默认值为50)  
+  
+输出值:  
+`X` 为该函数在该区间里所有零点的近似解  
+  
+使用范例:  
+1.在命令行中输入函数  
+`>> myfun = @(x)x^3 - 6*x^2 + 11*x - 6;`  
+`>> X = HHL(myfun,0,5)`  
 
-***************input value****************
-
-f is the original function handle 
-
-x0 is the left endpoint of the root interval (default is -10)
-
-x1 is the right endpoint of the root interval (default is 10)
-
-tol is the target error (default is 10^(-5))
-
-max is the maximum number of iterations (default is 50)
-
-%***************output value****************
-
-X is the approximate solution of all zeros of the function in this interval
-
-%**************Use example***************
-
-1.>>myfun=@(x)x^3-6*x^2+11*x-6;
-
-  >>X=HHL(myfun,0,5)
-
-2. in the myfun.m file
-
-   function y=myfun(x)
-
-   y=x^3-6*x^2+11*x-6;
-
-   >>X=HHL(@myfun,0,5)
+2. 在myfun.m文件中输入函数  
+`function y=myfun(x)`  
+`y = x^3 - 6*x^2 + 11*x - 6;`  
+在命令行中     
+`>> X = HHL(@myfun,0,5)`  
