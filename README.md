@@ -1,5 +1,5 @@
 # 函数简介
-`function X=HHL(f,x0,x1,tol,max) `  
+`function X = HHL(f,x0,x1,tol,max) `  
 本函数用于求出一元函数f在所给定区间中的所有近似零点  
 用Matlab2014实现
 
