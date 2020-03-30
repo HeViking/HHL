@@ -1,138 +1,138 @@
 function X=HHL(f,x0,x1,tol,max)
 
-% This function uses the Aitken iterative algorithm to find all approximate zeros of the unary function f in a given interval
+%本函数用于求出一元函数f在所给定区间中的所有近似零点
 %X=HHL(f,x0,x1,tol,max)
-%***************input value****************
-%f is the original function handle 
-%x0 is the left endpoint of the root interval (default is -10)
-%x1 is the right endpoint of the root interval (default is 10)
-%tol is the target error (default is 10^(-5))
-%max is the maximum number of iterations (default is 50)
-%***************output value****************
-%X is the approximate solution of all zeros of the function in this interval
-%**************Use example***************
+%***************输入值****************
+%f为原函数句柄 
+%x0为求根区间左端点(默认值为-10)
+%x1为求根区间右端点(默认值为10)
+%tol为目标误差(默认值为 10^(-5) )
+%max为最大迭代次数(默认值为50)
+%***************输出值****************
+%X为该函数在该区间里所有零点的近似解
+%**************使用范例***************
 %1.>>myfun=@(x)x^3-6*x^2+11*x-6;
 %  >>X=HHL(myfun,0,5)
-%2. in the myfun.m file
+%2. 在myfun.m文件中
 %   function y=myfun(x)
 %   y=x^3-6*x^2+11*x-6;
 %   >>X=HHL(@myfun,0,5)
 
-%**************Local variable**************
-%i loop variable
-%j loop variable
-%k current function zeros +1
-%xk iteration initial value
-%step iteration initial value step
-%flag repeat flag variable, =0 no repeat, =1 repeat
-%Q  ~x in the formula
-%R  ￣x n the formula
-%P value after each iteration
-%x The final iteration result of the initial value of each iteration
-%swap_temp data exchange staging variable
-%str string temporary variable
-%temp structure temporary variables
+%**************局部变量**************
+%i 循环变量
+%j 循环变量
+%k 目前函数的零点数+1
+%xk 迭代初值
+%step 迭代初值步长
+%flag  重复标志变量，=0无重复，=1重复
+%Q 公式中的~x
+%R 公式中的￣x
+%P 每一次迭代后的值
+%x 每个迭代初值的最终迭代结果
+%swap_temp 数据交换暂存变量
+%str 字符串暂存变量
+%temp 结构体暂存变量
 
-%**************************************Input variable processing*****************************************
+%**************************************输入变量处理*****************************************
 if(nargin<5)
-    max=50;   % is not equal to 50 when the maximum number of iterations is entered
+    max=50;   %没有输入最大迭代次数时，使其等于50
 end
 if(nargin<4)
-    tol=10^(-5);   % is equal to 10^(-5) when there is no input error
+    tol=10^(-5);   %没有输入误差时，使其等于10^（-5）
 end
 if(nargin==2) 
-    error('[Please enter the third parameter] can not only enter the left or right endpoint, you must enter or use the default interval at the same time. For details, please refer to help HHL'); % can not only enter the left endpoint, not the right endpoint
+    error('【请输入第三个参数】不能只输入左端点或右端点，必须同时输入或使用默认区间。详情请参考 help HHL'); %不能只输入左端点，不输入右端点
 end
 if(nargin==1)
-    x0=-10;        % is not equal to [-10,10] when inputting the root interval
+    x0=-10;        %没有输入求根区间时，使其等于[-10,10]
     x1=10;
 end
 if(nargin<1)
-    error('[Please enter the first parameter, that is, the function handle] must input the original function, please re-enter. For details, please refer to help HHL'); % must input the original function handle, no original function can not be solved
+    error('【请输入第一个参数，即函数句柄】必须输入原函数，请重新输入。详情请参考 help HHL');   %必须输入原函数句柄，无原函数无法进行求解
 end
 
 %对输入的区间查错
 if(x1<=x0)
-    error('[The third parameter should not be smaller than the second parameter] The right end of the interval is less than or equal to the left end point, and the interval is incorrect. Please re-enter. For details, please refer to help HHL');
+    error('【第三个参数不应小于第二个参数】区间右端点小于等于左端点，区间有误，请重新输入。详情请参考 help HHL');
 end
-if(x1-x0>200000)    % prevents the solution interval from being too 
-    error('[The third parameter should not be much larger than the second parameter] The length of the interval is too large, and the solution requires a lot of time. Please reduce the length of the interval. For details, please refer to help HHL');
+if(x1-x0>200000)    %防止求解区间过大
+    error('【第三个参数不应远大于第二个参数】区间长度太大，求解需要大量时间，请减少区间长度。详情请参考 help HHL');
 end
 if(max>1000||max<0)   
-    error('[The fifth parameter should not be too large or negative] The number of iterations is unreasonable, please re-enter. For details, please refer to help HHL');
+    error('【第五个参数不应太大或为负数】迭代次数不合理，请重新输入。详情请参考 help HHL');
 end
 if(tol<0)
-    error('[The fourth parameter should not be negative] The error limit should be positive, please re-enter. For details, please refer to help HHL');
+    error('【第四个参数不应为负数】误差限应该为正数，请重新输入。详情请参考 help HHL');
 end
-%**************************************initialization***************************************
-k=1;  %current function has zero number of zeros
-step=(x1-x0)/1000;  %iteration initial value step
-if(step>0.3)        %prevents the iteration initial value step size from being too large, resulting in a leak root
+%**************************************初始化***************************************
+k=1;  %目前函数的零点数为0
+step=(x1-x0)/1000;  %迭代初值步长
+if(step>0.3)        %防止迭代初值步长过大，导致漏根
     step=0.3;
 end
 
-%Determine if the special point is root
-if(abs(feval(f,x0))<tol)  %Check if the left endpoint is root
+%判断特殊点是否为根
+if(abs(feval(f,x0))<tol)  %检测左端点是否为根
     X(k)=x0;
     k=k+1;
 end
-if(abs(feval(f,x1))<tol)  %Check if the right endpoint is root
+if(abs(feval(f,x1))<tol)  %检测右端点是否为根
     X(k)=x1;
     k=k+1;
 end
-if(x0<0&&x1>0&&abs(feval(f,0))<tol)   %Check if the right endpoint is root
+if(x0<0&&x1>0&&abs(feval(f,0))<tol)   %检测0是否在求根区间内，同时是否为根
     X(k)=0;
     k=k+1;
 end
 
-%************************Function core, repeatedly using Aitken algorithm to calculate the result******************************
-for xk=x0:step:x1;  %takes a large number of iteration initial values
-    % first iteration
-    Q=feval(f,xk)+xk;   % Substituting the initial value into the iterative formula. Iterative formula: f(x)+x, the same below
+%************************函数核心，反复使用Aitken算法计算出结果******************************
+for xk=x0:step:x1;  %取大量迭代初值
+    %第一次迭代
+    Q=feval(f,xk)+xk;   %将初值代入迭代公式。迭代公式:f(x)+x，下同
     R=feval(f,Q)+Q;
-    if((R-2*Q+xk)==0)    %P(1) The denominator is 0, the iterative result does not converge, and the iteration of the initial value of the next iteration is directly performed.
+    if((R-2*Q+xk)==0)   %P(1)分母为0，迭代结果不收敛，直接进行下一个迭代初值的迭代
         continue;
     end    
-    P(1)=R-((R-Q)^2)/(R-2*Q+xk);  % first iteration result
+    P(1)=R-((R-Q)^2)/(R-2*Q+xk);  %第一次迭代结果
     
-    % loop iteration until the difference between two iterations is less than the error limit
+    %循环迭代，直至两次迭代的差小于误差限
     for j=2:max;
         Q=feval(f,P(j-1))+P(j-1);
         R=feval(f,Q)+Q;
-        if((R-2*Q+P(j-1))==0)  %P(j) denominator is 0, the iterative result does not converge, and the iteration of the initial value of the next iteration is directly performed.
+        if((R-2*Q+P(j-1))==0)   %P(j)分母为0，迭代结果不收敛，直接进行下一个迭代初值的迭代
             break;
         end
-        P(j)=R-((R-Q)^2)/(R-2*Q+P(j-1));  % jth iteration result
-        err=abs(P(j)-P(j-1));  % current error
+        P(j)=R-((R-Q)^2)/(R-2*Q+P(j-1));   %第j次迭代结果
+        err=abs(P(j)-P(j-1));  %当前误差
         x=P(j);
-        if (err<tol) % The absolute value of the difference between two iterations is less than the end of the error limit
+        if (err<tol)  %两次迭代的差的绝对值小于误差限结束
             break;
         end
     end
     
-%******************************************Judge whether the value iterated out is Compliance with the conditions of the root **************************************************
-    flag=0;   %repeat flag variable initial value
-    if(exist('x','var')==0)   %does not find x, does not have to judge the root, directly iterate the initial value of the next iteration
+%*******************************************判断迭代出的值是否符合根的条件**************************************************
+    flag=0;   %重复标志变量赋初值
+    if(exist('x','var')==0)   %没有求出x，不必进行根的判断，直接进行下一个迭代初值的迭代
         continue;
     end
-    if(j<max &&x>x0&&x<x1 &&abs(feval(f,x))<tol)  %Root requires conditions: 1. Iteration results converge. 2. The iterative result is within the root interval. 3. The iteration result is the zero point of the function
+    if(j<max &&x>x0&&x<x1 &&abs(feval(f,x))<tol)  %根需要的条件：1.迭代结果收敛。2.迭代结果在求根区间内。3.迭代结果为函数的零点
         for i=1:k-1   
-            if(abs(X(i)-x)<10^(-3))  %Check whether the result of this iteration is repeated with the existing root
+            if(abs(X(i)-x)<10^(-3))  %检测本次迭代结果是否与已有的根重复
                 flag=1;
                 break;
             end
         end
-        if(flag==0)   %is not repeated
-            X(k)=x;   %is not repeated
+        if(flag==0)   %没有重复
+            X(k)=x;   %本次迭代结果为新的一个根
             k=k+1;
         end
     end
 end
 
-%***********Bulk sorting of roots, from small to large array ******************
+%***********对根进行冒泡排序，从小到大排列******************
 for i=1:k-1;
     for j=i:k-1;
-        if(X(i)>X(j))   %exchanges two data
+        if(X(i)>X(j))   %交换两个数据
             swap_temp = X(j);
             X(j) = X(i);
             X(i) = swap_temp;
@@ -140,39 +140,39 @@ for i=1:k-1;
     end
 end
 
-%**************************Zero situation report ****************************
-%get the original function
-temp=functions(f);  %Get function handle details
-str=temp.function;  % get the function handle content
-if(strcmp(temp.type,'anonymous'))  %is an anonymous function?    
-    [i,j]=size(str); 
+%**************************零点情况报告****************************
+%获取原函数
+temp=functions(f);  %获取函数句柄详细信息
+str=temp.function;  %获取函数句柄内容
+if(strcmp(temp.type,'anonymous'))  %是否匿名函数    
+    [i,j]=size(str); %获取字符串长度
     for i=1:j;
-        if(str(i)==')')  %search for the character ‘)’
+        if(str(i)==')')  %搜索字符‘）’
             break;
         end
     end
-    str=str(i+1:end);  %takes the characters after ‘)’. For example, "fun=@(x)x^2-1" is intercepted as "x^2-1"
+    str=str(i+1:end);  %取‘）’以后字符。如“fun=@(x)x^2-1”截取为“x^2-1”
     
-else   % is the m file function
+else   %为m文件函数
     str=strcat(str,'.m');
-    fp = fopen(str,'r');  %Open the corresponding m file
-    str=fscanf(fp,'%s');  %Read m file content
-    [i,j]=size(str);   %Get the length of the string
-    flag=0;  % flag variable initial value
+    fp = fopen(str,'r');  %打开对应m文件
+    str=fscanf(fp,'%s');  %读取m文件内容
+    [i,j]=size(str);   %获取字符串长度
+    flag=0;  %标志变量赋初值
     for i=1:j;
-        if(str(i)=='=')  %Get the length of the string
-            if(flag==1)  % second search for ‘=’
+        if(str(i)=='=')  %搜索第二个‘=’      
+            if(flag==1)  %第二次搜索到‘=’
                  break;
             end   
-            flag=1;  % second search for ‘=’
+            flag=1;  %第一次搜索到‘=’
         end
     end
-    str=str(i+1:end-1);  % takes the second ‘=’ character. For example, "function y=fun(x)y=x^2-1;" is intercepted as "x^2-1"  
+    str=str(i+1:end-1);  %取第二个‘=’以后字符。如“function y=fun(x)y=x^2-1;”截取为“x^2-1”   
 end
-str=strcat(str,'=0'); % adds "=0" to the string obtained above
+str=strcat(str,'=0'); %在以上所得的字符串后加上“=0”
 
-if(k==1)  % adds "=0" to the string obtained above
-    ('equation %s has no approximate solution \n' in the interval [%g, %g], str, x0, x1);
-else   has root condition
-    fprintf('equation %s has a total of %d approximate solutions in the interval [%g, %g], arranged from small to large as follows: ', str, x0, x1, k-1);
+if(k==1)  %没有根的情况
+    fprintf('方程 %s 在区间[%g,%g]中没有近似解\n',str,x0,x1);
+else   %有根的情况
+    fprintf('方程 %s 在区间[%g,%g]中共有%d个近似解，从小到大排列如下：',str,x0,x1,k-1);
 end
